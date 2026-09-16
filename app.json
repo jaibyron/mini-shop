@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "mini-shop",
+    "name": "Thanos' Mini-Mart",
     "slug": "mini-shop",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "orientation": "default",
+    "icon": "./assets/thanos.jpg",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.mini-shop"
     },
     "android": {
       "adaptiveIcon": {
