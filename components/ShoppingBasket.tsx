@@ -1,5 +1,9 @@
-import { Text, View, StyleSheet } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+import { Text, View, StyleSheet, Pressable } from "react-native";
+import { ShopStackParamList } from "../types/navigation";
+import { useSelector } from "react-redux";
 import { CartItem } from "../store/cartSlice";
 
 export default function ShoppingBasket() {
@@ -7,16 +11,21 @@ export default function ShoppingBasket() {
     (state: { cart: { items: CartItem[] } }) => state.cart.items,
   );
 
+  const navigation =
+    useNavigation<NativeStackNavigationProp<ShopStackParamList>>();
+
   return (
-    <View style={styles.background}>
-      {getCartTotalItemCount(cartItems) > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>
-            {getCartTotalItemCount(cartItems)}
-          </Text>
-        </View>
-      )}
-    </View>
+    <Pressable onPress={() => navigation.navigate("Cart")}>
+      <View style={styles.background}>
+        {getCartTotalItemCount(cartItems) > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {getCartTotalItemCount(cartItems)}
+            </Text>
+          </View>
+        )}
+      </View>
+    </Pressable>
   );
 }
 
@@ -28,10 +37,6 @@ function getCartTotalItemCount(items: CartItem[]) {
   }
 
   return total;
-}
-
-function getCartTotalItemCountNew(items: CartItem[]) {
-  return items.reduce((total, item) => total + item.quantity, 0);
 }
 
 const styles = StyleSheet.create({

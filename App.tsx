@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import { Provider } from "react-redux";
 import { store } from "./store";
@@ -9,32 +10,45 @@ import ShoppingBasket from "./components/ShoppingBasket";
 import TodoScreen from "./screens/TodoScreen";
 import GeneralUiScreen from "./screens/Exercises/GeneralUiScreen";
 
-const { Navigator, Screen } = createBottomTabNavigator();
+const Tab = createBottomTabNavigator();
+const ShopStack = createNativeStackNavigator();
+
+function ShopStackScreen() {
+  return (
+    <ShopStack.Navigator>
+      <ShopStack.Screen
+        name="ProductsList"
+        component={ProductsScreen}
+        options={{
+          title: "Thanos Mini-Mart",
+          headerLeft: () => <ShoppingBasket />,
+        }}
+      />
+      <ShopStack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{
+          title: "Your Cart",
+        }}
+      />
+    </ShopStack.Navigator>
+  );
+}
 
 export default function App() {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Navigator>
-          <Screen
-            name="products"
-            component={ProductsScreen}
+        <Tab.Navigator>
+          <Tab.Screen
+            name="Shop"
+            component={ShopStackScreen}
             options={{
-              title: "Thanos Mini-Mart",
+              headerShown: false,
               tabBarLabel: "Shop",
-              headerLeft: () => <ShoppingBasket />,
             }}
           />
-          <Screen
-            name="cart"
-            component={CartScreen}
-            options={{
-              title: "Your Cart",
-              tabBarLabel: "Cart",
-              headerLeft: () => <ShoppingBasket />,
-            }}
-          />
-          <Screen
+          <Tab.Screen
             name="todo"
             component={TodoScreen}
             options={{
@@ -42,7 +56,7 @@ export default function App() {
               tabBarLabel: "ToDo",
             }}
           />
-          <Screen
+          <Tab.Screen
             name="general"
             component={GeneralUiScreen}
             options={{
@@ -50,7 +64,7 @@ export default function App() {
               tabBarLabel: "Exercises",
             }}
           />
-        </Navigator>
+        </Tab.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
     </Provider>

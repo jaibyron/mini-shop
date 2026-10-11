@@ -18,9 +18,10 @@ export function Part01() {
   const [ex2buttonVisible, ex2setState] = useState(true);
   const [ex3value, ex3onChangeText] = useState("Useless Multiline Placeholder");
   const [ex3textColour, ex3setColour] = useState("black");
-  const [ex4isLightMode, ex4setIsLightMode] = useState(ex4getIsLightMode());
-  const [isEnabled, setIsEnabled] = useState(false);
-  const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
+  const [ex4isDark, ex4setIsDark] = useState(false);
+  const ex4toggleSwitch = () => {
+    ex4setIsDark((previous) => !previous);
+  };
 
   return (
     <View>
@@ -152,9 +153,25 @@ export function Part01() {
           trackColor={{ false: "#767577", true: "#1dc822" }}
           thumbColor={"#f4f3f4"}
           ios_backgroundColor="#3e3e3e"
-          onValueChange={toggleSwitch}
-          value={isEnabled}
+          onValueChange={(value) => {
+            console.log(`Value:${value}`);
+            ex4toggleSwitch();
+          }}
+          value={ex4isDark}
         />
+        <Spacer />
+        <View
+          style={{
+            height: 40,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: ex4isDark ? "black" : "white",
+          }}
+        >
+          <Text style={{ color: ex4isDark ? "white" : "black" }}>
+            {ex4isDark ? "DARK MODE" : "LIGHT MODE"}
+          </Text>
+        </View>
       </View>
 
       <View style={CommonStyles.borderedView}>
