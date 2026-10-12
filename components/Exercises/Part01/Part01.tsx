@@ -10,8 +10,9 @@ import {
   Switch,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Spacer } from "../../components/Spacer";
-import { CommonStyles, MainHeading, SubHeading } from "./Common";
+import { Spacer } from "../../Spacer";
+import { CommonStyles, MainHeading, SubHeading } from "../Common";
+import { Part01Ex05Form } from "./Part01Ex05Form";
 
 export function Part01() {
   const [ex1counter, ex1setCounter] = useState(0);
@@ -176,6 +177,7 @@ export function Part01() {
 
       <View style={CommonStyles.borderedView}>
         <SubHeading text="Exercise 5: Form with Multiple Fields" />
+        <Part01Ex05Form />
       </View>
 
       <View style={CommonStyles.borderedView}>

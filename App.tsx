@@ -8,7 +8,7 @@ import ProductsScreen from "./screens/ProductsScreen";
 import CartScreen from "./screens/CartScreen";
 import ShoppingBasket from "./components/ShoppingBasket";
 import TodoScreen from "./screens/TodoScreen";
-import GeneralUiScreen from "./screens/Exercises/GeneralUiScreen";
+import GeneralUiScreen from "./components/Exercises/GeneralUiScreen";
 
 const Tab = createBottomTabNavigator();
 const ShopStack = createNativeStackNavigator();

@@ -1,9 +1,9 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Spacer } from "../../components/Spacer";
+import { Spacer } from "../Spacer";
 import { MainHeading, SubHeading, CommonStyles } from "./Common";
-import { Part01 } from "./Part01";
+import { Part01 } from "./Part01/Part01";
 export default function GeneralUiScreen() {
   return (
     <SafeAreaView edges={["left", "right"]} style={styles.container}>
