@@ -1,7 +1,10 @@
 # React Native State Management Exercises
 
-Progressive exercises to build competency with `useState` and `useEffect` hooks.
-Use `GeneralUiScreen.tsx` to implement each exercise.
+Progressive exercises to build competency with React hooks.
+Use `GeneralUiScreen.tsx` to implement each exercise. One file per part (as in `Part01/`) keeps it manageable.
+
+> This file covers **Phase 1 (React core)** of the wider plan in [TRAINING_PLAN.md](TRAINING_PLAN.md).
+> Notes marked **⚠️ Gotcha** explain cases where the "obvious" code has a subtle bug or goes against current React guidance. These are good interview material.
 
 ---
 
@@ -109,7 +112,7 @@ setQuantity(prev => Math.min(prev + 1, 10))
 
 ## Part 2: useEffect Basics
 
-### [ ] Exercise 7: Document Title (Web) / Console Logger
+### [ ] Exercise 7: Console Logger
 Log a message every time a counter value changes.
 
 **Goals:**
@@ -168,6 +171,19 @@ useEffect(() => {
 
 **Stretch:** Handle errors gracefully with an error state.
 
+**⚠️ Gotcha — race conditions:** Tap "Get Another" three times quickly. The responses can arrive out of order, so a stale joke may overwrite a newer one. If the screen unmounts mid-request, you also set state on a dead component. Fix it with an `AbortController`, aborting in the effect cleanup and on each new request:
+```tsx
+useEffect(() => {
+  const controller = new AbortController();
+  fetch(url, { signal: controller.signal })
+    .then(r => r.json())
+    .then(setJoke)
+    .catch(e => { if (e.name !== 'AbortError') setError(e); });
+  return () => controller.abort();
+}, [reloadKey]);
+```
+In production you'd usually use TanStack Query instead of fetching in `useEffect` (see Phase 4 of the training plan), but you need to understand this first.
+
 ---
 
 ### [ ] Exercise 10: Countdown Timer
@@ -224,6 +240,10 @@ useEffect(() => {
 }, []);
 ```
 
+**Note:** In real code, use the built-in `useWindowDimensions()` hook, which does exactly this for you. This exercise is about the *subscribe → cleanup* pattern, which you'll reuse for AppState, Keyboard, NetInfo, Location, sensors, and more.
+
+**Stretch:** Rewrite it as your own `useDimensions()` custom hook (see Part 7).
+
 ---
 
 ### [ ] Exercise 13: Persisted Counter with AsyncStorage
@@ -250,6 +270,19 @@ useEffect(() => {
   AsyncStorage.setItem('count', count.toString());
 }, [count]);
 ```
+
+**⚠️ Gotcha — the snippet above has a bug.** On mount, *both* effects run. The save effect writes `0` immediately, before the async load finishes, so the saved value can be overwritten. Before peeking at the fix, try to reproduce it. Fix: track an `isHydrated` flag and skip saving until the load has completed:
+```tsx
+const [isHydrated, setIsHydrated] = useState(false);
+// in load: .finally(() => setIsHydrated(true))
+useEffect(() => {
+  if (!isHydrated) return;
+  AsyncStorage.setItem('count', String(count));
+}, [count, isHydrated]);
+```
+This "hydration" problem appears again in every persistence library (redux-persist, Zustand `persist`, and so on).
+
+**Alternative:** `expo-sqlite/kv-store` offers the same key-value API, including synchronous `getItemSync`, which removes the loading flash entirely.
 
 ---
 
@@ -318,6 +351,8 @@ Load more items as the user scrolls to the bottom.
 setItems(prev => [...prev, ...newItems])
 ```
 
+**⚠️ Gotcha:** `onEndReached` often fires several times in a row, including once on the initial render if the content is shorter than the screen. Guard it with an `isLoadingMore` flag (or a ref) and a `hasMore` flag. Use `ListFooterComponent` to show the spinner.
+
 ---
 
 ### [ ] Exercise 18: Real-Time Clock
@@ -352,9 +387,13 @@ Show online/offline status and sync state.
 
 **Key concept:** Multiple effects responding to different conditions.
 
+**Requires:** `npx expo install @react-native-community/netinfo` (or `expo-network`). Test it by toggling airplane mode on a real device, because simulators report network state unreliably.
+
 ---
 
 ## Part 5: useMemo & useCallback
+
+> **Context for 2026: React Compiler.** The React Compiler memoizes components and values for you at build time, and Expo supports it (see the Expo docs guide "React Compiler"). With it on, most hand-written `useMemo`, `useCallback` and `React.memo` becomes unnecessary. **Do these exercises with the compiler off** so you can see the problem it solves. Then turn it on and repeat Exercise 25. Interviewers *will* ask what referential equality is and why memoization matters, and many existing codebases don't use the compiler.
 
 ### [ ] Exercise 21: Expensive Filtered List
 Build a list with a text filter where filtering is computationally expensive.
@@ -549,6 +588,15 @@ useEffect(() => {
 // because the effect runs *after* render
 ```
 
+**⚠️ Gotcha:** The React docs say **don't read or write `ref.current` during render**, except for lazy initialisation. It makes the component impure, and React Compiler and StrictMode can expose bugs. The officially recommended "previous value" pattern stores the previous value in *state* and compares during render:
+```tsx
+const [prevCount, setPrevCount] = useState(count);
+if (count !== prevCount) {
+  setPrevCount(count); // React re-renders immediately, before painting
+}
+```
+Build both versions. Being able to explain why the docs prefer the second is a strong interview answer.
+
 ---
 
 ### [ ] Exercise 30: Render Counter (Without Infinite Loops)
@@ -568,6 +616,8 @@ renderCount.current += 1;
 // vs useState (DON'T do this):
 // setRenderCount(prev => prev + 1); // infinite loop!
 ```
+
+**⚠️ Gotcha:** In development, StrictMode deliberately renders components **twice** to catch impure code, so your count may go up by 2. That's not a bug in your exercise. It's React showing you that mutating a ref during render is a side effect. Treat this as a debugging trick only, never a pattern for production code.
 
 ---
 
@@ -678,6 +728,105 @@ const logCountLater = () => {
 
 **Discussion:** This is a fundamental React pattern. State gives you render-time snapshots. Refs give you the latest mutable value.
 
+**Refinement:** Assigning `countRef.current = count` during render has the same purity problem as Exercise 29. Move the assignment into a `useEffect`, or better, use React 19.2's `useEffectEvent` (Exercise 39). It exists specifically to give you a "latest value" function without making it an effect dependency.
+
+---
+
+## Part 7: useReducer, useContext & Custom Hooks
+
+These three tools are how real apps structure state before (or instead of) reaching for Redux.
+
+### [ ] Exercise 35: Cart with useReducer
+Rebuild the cart's add/remove/clear logic with `useReducer`, without using Redux.
+
+**Goals:**
+- Define a `CartAction` discriminated union: `{ type: 'add', item } | { type: 'remove', id } | { type: 'clear' }`
+- Write a pure `cartReducer(state, action)` that returns **new** state (no Immer here, so no mutation)
+- Use `dispatch` from the UI
+
+**Key concept:** This is what Redux Toolkit is doing for you. Compare it with `store/cartSlice.ts`. RTK uses Immer, which is why `existingItem.quantity += 1` is allowed there but would be a bug here.
+```tsx
+case 'add':
+  return {
+    ...state,
+    items: state.items.map(i => i.id === action.item.id ? { ...i, quantity: i.quantity + 1 } : i),
+  };
+```
+
+**Stretch:** Make TypeScript give an error if a `switch` misses an action type (`const _exhaustive: never = action`).
+
+---
+
+### [ ] Exercise 36: Theme via Context
+Replace Exercise 4's local state with an app-wide theme.
+
+**Goals:**
+- Create a `ThemeContext` with `{ theme, toggleTheme }`
+- Write a `ThemeProvider` and a `useTheme()` hook that throws if used outside the provider
+- Default to the device setting with `useColorScheme()`, and let the user override it
+- Apply it to at least two different screens
+
+**Key concept:** Context is dependency injection, not a state manager. Every consumer re-renders when the value changes, so memoize the value object.
+
+**Flutter equivalent:** `InheritedWidget` / `Theme.of(context)`.
+
+---
+
+### [ ] Exercise 37: `useFetch` Custom Hook
+Extract Exercise 9 into a reusable hook.
+
+**Goals:**
+- `const { data, error, isLoading, refetch } = useFetch<Joke>(url)`
+- Generic over the response type
+- Handles abort on unmount and on URL change
+
+**Key concept:** Custom hooks share *logic*, not state. Each call gets its own state.
+
+---
+
+### [ ] Exercise 38: `useDebounce` & `useInterval`
+Write two classic utility hooks and refactor Exercises 8, 11 and 18 to use them.
+
+```tsx
+const debouncedQuery = useDebounce(query, 500);
+useInterval(() => setSeconds(s => s + 1), isRunning ? 1000 : null);
+```
+
+**Key concept:** `useInterval` has to always call the *latest* callback without restarting the interval. That's the stale-closure problem from Exercise 34 again.
+
+---
+
+### [ ] Exercise 39: useEffectEvent
+Use React 19.2's `useEffectEvent` to separate "reactive" values from "values I only want to read".
+
+**Goals:**
+- An effect subscribes to `Dimensions` changes and logs the new size **along with the current theme**
+- Without `useEffectEvent`, the theme has to go in the dependency array, so the subscription is torn down and recreated on every theme change
+- With `useEffectEvent`, the subscription is created once and still reads the latest theme
+
+```tsx
+const onResize = useEffectEvent((window) => {
+  console.log('Resized', window, 'theme is', theme);
+});
+
+useEffect(() => {
+  const sub = Dimensions.addEventListener('change', ({ window }) => onResize(window));
+  return () => sub.remove();
+}, []);
+```
+
+---
+
+### [ ] Exercise 40: AppState Listener
+Pause the stopwatch automatically when the app goes to the background, and resume it when the app comes back.
+
+**Goals:**
+- Subscribe to `AppState.addEventListener('change', ...)`
+- Track `'active' | 'background' | 'inactive'` (`inactive` is iOS-only)
+- Show the time the app spent in the background when it returns
+
+**Key concept:** This is the RN equivalent of Flutter's `WidgetsBindingObserver.didChangeAppLifecycleState`. You'll use it for refreshing data, locking sensitive screens, and pausing the camera.
+
 ---
 
 ## Completion Checklist
@@ -718,6 +867,12 @@ const logCountLater = () => {
 | 32 | Interval ID Storage | [ ] |
 | 33 | Measure a Component's Layout | [ ] |
 | 34 | Avoiding Stale Closures | [ ] |
+| 35 | Cart with useReducer | [ ] |
+| 36 | Theme via Context | [ ] |
+| 37 | `useFetch` Custom Hook | [ ] |
+| 38 | `useDebounce` & `useInterval` | [ ] |
+| 39 | useEffectEvent | [ ] |
+| 40 | AppState Listener | [ ] |
 
 ---
 
@@ -728,3 +883,5 @@ const logCountLater = () => {
 3. **Check the dependency array** — missing dependencies cause stale closures, extra dependencies cause unnecessary re-runs
 4. **Always clean up** — intervals, timeouts, and subscriptions must be cleaned up to avoid memory leaks
 5. **Functional updates** — use `setState(prev => ...)` when new state depends on previous state
+6. **Derive, don't sync** — if a value can be computed from props or state, compute it during render. Don't store it in state and keep it in sync with `useEffect`. (See the React docs page "You Might Not Need an Effect", which is probably the most interview-relevant page in the React docs.)
+7. **Keep render pure** — no side effects, no ref mutation, no `Math.random()` during render. Effects and event handlers are where side effects belong.
