@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Spacer } from "../../Spacer";
-import { CommonStyles, SubHeading } from "../Common";
+import { SubHeading } from "../Common";
+import { BorderedView } from "../../BorderedView";
 
 export function Part01Ex02() {
   const [buttonVisible, setButtonVisible] = useState(true);
 
   return (
-    <View style={CommonStyles.borderedView}>
+    <BorderedView>
       <SubHeading text="Exercise 2: Toggle Visibility" />
       <Spacer />
       <View style={{ flexDirection: "row" }}>
@@ -36,7 +37,7 @@ export function Part01Ex02() {
           )}
         </View>
       </View>
-    </View>
+    </BorderedView>
   );
 }
 

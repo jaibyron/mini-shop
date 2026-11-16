@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Text, View, Switch, Appearance } from "react-native";
 import { Spacer } from "../../Spacer";
-import { CommonStyles, SubHeading } from "../Common";
+import { SubHeading } from "../Common";
+import { BorderedView } from "../../BorderedView";
 
 export function Part01Ex04() {
   const [isDark, setIsDark] = useState(false);
@@ -10,7 +11,7 @@ export function Part01Ex04() {
   };
 
   return (
-    <View style={CommonStyles.borderedView}>
+    <BorderedView>
       <SubHeading text="Exercise 4: Theme Switcher" />
       <Spacer />
       <Switch
@@ -36,6 +37,6 @@ export function Part01Ex04() {
           {isDark ? "DARK MODE" : "LIGHT MODE"}
         </Text>
       </View>
-    </View>
+    </BorderedView>
   );
 }

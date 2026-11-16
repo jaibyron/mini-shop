@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { TextInput, StyleSheet, Text, View } from "react-native";
 import { Spacer } from "../../Spacer";
-import { CommonStyles, SubHeading } from "../Common";
+import { SubHeading } from "../Common";
+import { BorderedView } from "../../BorderedView";
 
 export function Part01Ex03() {
   const [ex3value, ex3onChangeText] = useState("Useless Multiline Placeholder");
   const [ex3textColour, ex3setColour] = useState("black");
 
   return (
-    <View style={CommonStyles.borderedView}>
+    <BorderedView>
       <SubHeading text="Exercise 3: Character Counter" />
       <Spacer />
       <TextInput
@@ -27,7 +28,7 @@ export function Part01Ex03() {
       <Text style={{ color: ex3textColour }}>
         {ex3value.length}/100 characters
       </Text>
-    </View>
+    </BorderedView>
   );
 }
 

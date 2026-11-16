@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Spacer } from "../../Spacer";
-import { CommonStyles, SubHeading } from "../Common";
+import { SubHeading } from "../Common";
+import { BorderedView } from "../../BorderedView";
 
 /**
  * Exercise 1: Counter
@@ -50,7 +51,7 @@ export function Part01Ex01() {
   const decrement = () => setCounter((prev) => prev - 1);
 
   return (
-    <View style={CommonStyles.borderedView}>
+    <BorderedView>
       <SubHeading text="Exercise 1: Counter" />
       <Spacer />
 
@@ -70,7 +71,7 @@ export function Part01Ex01() {
           <Text style={styles.valueText}>{counter}</Text>
         </View>
       </View>
-    </View>
+    </BorderedView>
   );
 }
 

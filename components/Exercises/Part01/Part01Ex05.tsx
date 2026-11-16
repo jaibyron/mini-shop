@@ -1,41 +1,25 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  Button,
-} from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { Spacer } from "../../Spacer";
-import { CommonStyles, SubHeading } from "../Common";
+import { SubHeading } from "../Common";
+import { BorderedView } from "../../BorderedView";
 
 export function Part01Ex05() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
   return (
-    <View style={CommonStyles.borderedView}>
+    <BorderedView>
       <SubHeading text="Exercise 5: Form with Multiple Fields" />
 
       <Spacer height={8} />
-      <Text>First Name:</Text>
+      <Text>Name:</Text>
       <TextInput
         style={styles.input}
         onChangeText={(text) => {
-          setFirstName(text);
+          setName(text);
         }}
-        value={firstName}
-      />
-      <Spacer height={8} />
-      <Text>Last Name:</Text>
-      <TextInput
-        style={styles.input}
-        onChangeText={(text) => {
-          setLastName(text);
-        }}
-        value={lastName}
+        value={name}
       />
       <Spacer height={8} />
       <Text>Email:</Text>
@@ -47,11 +31,33 @@ export function Part01Ex05() {
         value={email}
       />
       <Spacer />
-      <Pressable style={styles.submitButton}>
+      <Pressable
+        style={[
+          styles.submitButton,
+          isFormValid(name, email)
+            ? styles.submitButtonBackGroundEnabled
+            : styles.submitButtonBackGroundDisabled,
+        ]}
+        disabled={!isFormValid(name, email)}
+        onPress={() => {
+          console.log("Pressed");
+        }}
+      >
         <Text style={styles.submitButtonText}>Submit</Text>
       </Pressable>
-    </View>
+    </BorderedView>
   );
+}
+
+const validateEmail = (email: string) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+  return regex.test(email.trim());
+};
+
+function isFormValid(name: string, email: string) {
+  const isValid =
+    name.trim() !== "" && email.trim() !== "" && validateEmail(email);
+  return isValid;
 }
 
 export const styles = StyleSheet.create({
@@ -70,7 +76,13 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "black",
     borderRadius: 8,
+    // backgroundColor: "red",
+  },
+  submitButtonBackGroundEnabled: {
     backgroundColor: "red",
+  },
+  submitButtonBackGroundDisabled: {
+    backgroundColor: "grey",
   },
   submitButtonText: {
     color: "white",
